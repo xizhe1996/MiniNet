@@ -1,9 +1,7 @@
 #include <algorithm>  // minmax_element
 #include <chrono>
 #include <iostream>
-#include <numeric>  // accumulate
-#include <string>
-#include <thread>
+#include <numeric>
 #include <vector>
 
 class ScopedTimer {
