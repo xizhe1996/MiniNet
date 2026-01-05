@@ -22,7 +22,7 @@ class ScopedTimer {
   std::chrono::steady_clock::time_point start_time_;
 };
 
-int main() {
+int main(int argc, char* argv[]) {
   ScopedTimer timer("day01_demo");
   std::cout << " Hello MiniNet!" << std::endl;
   std::this_thread::sleep_for(std::chrono::milliseconds(120));
