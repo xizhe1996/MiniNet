@@ -33,6 +33,7 @@ class Buffer {
 
  private:
   void ensure_writable_bytes(size_t len);
+  void make_space(size_t len);
 
  private:
   std::vector<char> buffer_;
