@@ -1,8 +1,9 @@
 #pragma once
+#include <sys/types.h>
+
 #include <cstddef>
 #include <string>
 #include <vector>
-
 namespace mininet {
 
 class Buffer {
@@ -30,6 +31,16 @@ class Buffer {
 
   // 读出全部数据为 string，并清空
   std::string retrieve_all_as_string();
+
+  // wirtable 区指针
+  char* begin_write();
+  const char* begin_write() const;
+
+  // 推进write_index_
+  void has_written(size_t len);
+
+  // 从fd阅读到buffer
+  ssize_t read_fd(int fd, int* saved_errno);
 
  private:
   void ensure_writable_bytes(size_t len);

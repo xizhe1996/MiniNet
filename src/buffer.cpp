@@ -1,5 +1,8 @@
 #include "mininet/buffer.h"
 
+#include <errno.h>
+#include <sys/uio.h>  // readv
+
 #include <algorithm>
 #include <cstring>
 namespace mininet {
@@ -13,6 +16,10 @@ size_t Buffer::writable_bytes() const { return buffer_.size() - write_idx_; }
 const char* Buffer::peek() const { return buffer_.data() + read_idx_; }
 
 void Buffer::make_space(size_t len) {
+  // If writable is enough, nothing to do.
+  if (writable_bytes() >= len) return;
+
+  // Otherwise, try to compact or resize.
   if (read_idx_ + writable_bytes() >= len) {
     size_t readable = readable_bytes();
     std::memmove(buffer_.data(), peek(), readable);
@@ -54,6 +61,42 @@ std::string Buffer::retrieve_all_as_string() {
   std::string str(peek(), readable_bytes());
   retrieve_all();
   return str;
+}
+
+char* Buffer::begin_write() { return buffer_.data() + write_idx_; }
+
+const char* Buffer::begin_write() const { return buffer_.data() + write_idx_; }
+
+void Buffer::has_written(size_t len) { write_idx_ += len; }
+
+ssize_t Buffer::read_fd(int fd, int* saved_errno) {
+  // 常见tcp缓冲区大小 64kb
+  char extrabuf[65536];
+
+  iovec io[2];
+  const size_t writable = writable_bytes();
+  io[0].iov_base = begin_write();
+  io[0].iov_len = writable;
+  io[1].iov_base = extrabuf;
+  io[1].iov_len = sizeof(extrabuf);
+
+  const int iolen = (writable < sizeof(extrabuf)) ? 2 : 1;
+
+  ssize_t n = ::readv(fd, io, iolen);
+
+  if (n < 0) {
+    // error, save errno
+    if (saved_errno) *saved_errno = errno;
+  } else if (static_cast<size_t>(n) <= writable) {
+    // n <= writable
+    has_written(static_cast<size_t>(n));
+  } else {
+    // n > writable
+    has_written(writable);
+    append(extrabuf, n - writable);
+  }
+
+  return n;
 }
 
 }  // namespace mininet
