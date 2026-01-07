@@ -99,4 +99,18 @@ ssize_t Buffer::read_fd(int fd, int* saved_errno) {
   return n;
 }
 
+ssize_t Buffer::write_fd(int fd, int* saved_errno) {
+  // buf --> write fd
+  size_t nreadable = readable_bytes();
+  ssize_t n = ::write(fd, peek(), nreadable);
+
+  if (n < 0) {
+    // save errno
+    if (saved_errno) *saved_errno = errno;
+  } else {
+    retrieve(static_cast<size_t>(n));
+  }
+  return n;
+}
+
 }  // namespace mininet

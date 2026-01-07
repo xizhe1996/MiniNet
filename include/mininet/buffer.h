@@ -1,5 +1,6 @@
 #pragma once
 #include <sys/types.h>
+#include <unistd.h>  // write
 
 #include <cstddef>
 #include <string>
@@ -41,6 +42,8 @@ class Buffer {
 
   // 从fd阅读到buffer
   ssize_t read_fd(int fd, int* saved_errno);
+
+  ssize_t write_fd(int fd, int* saved_errno);
 
  private:
   void ensure_writable_bytes(size_t len);
