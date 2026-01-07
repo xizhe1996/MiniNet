@@ -16,6 +16,7 @@ add_compile_options(-O2 -Wall -Wextra -Wpedantic)
 # --- mininet library ---
 add_library(mininet STATIC
     src/buffer.cpp
+    src/join_thread.cpp
 )
 
 target_include_directories(mininet PUBLIC
@@ -39,3 +40,4 @@ add_day_example(day03 examples/day03/main.cpp)
 add_day_example(day04 examples/day04/main.cpp)
 add_day_example(day05 examples/day05/main.cpp)
 add_day_example(day06 examples/day06/main.cpp)
+add_day_example(day08 examples/day08/main.cpp)
