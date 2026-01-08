@@ -2,7 +2,7 @@
 #include <thread>
 #include <vector>
 
-#include "mininet/blocking_queue.h"
+#include "mininet/blocking_queue_v1.h"
 #include "mininet/join_thread.h"
 
 using mininet::BlockingQueue;
