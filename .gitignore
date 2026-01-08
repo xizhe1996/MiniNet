@@ -1,6 +1,7 @@
-#build src
+# build src
 build/
 
+# c++ default
 # Prerequisites
 *.d
 
