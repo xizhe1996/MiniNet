@@ -63,7 +63,13 @@ class ThreadPool {
   void worker_loop() {
     std::function<void()> task;
     while (tasks_.pop(task)) {
-      task();
+      try {
+        task();
+      } catch (const std::exception& e) {
+        std::cerr << "[worker]" << "task exception : " << e.what() << "\n ";
+      } catch (...) {
+        std::cerr << "[worker]" << "task unknow exception" << "\n ";
+      }
     }
     // queue closed and empty -> exit
   }
