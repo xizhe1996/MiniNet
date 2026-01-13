@@ -3,7 +3,7 @@
 #include <iostream>
 #include <thread>
 
-#include "mininet/thread_pool.h"
+#include "mininet/thread_pool_v1.h"
 
 using mininet::ThreadPool;
 

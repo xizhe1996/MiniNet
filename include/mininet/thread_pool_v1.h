@@ -28,23 +28,6 @@ class ThreadPool {
     return tasks_.push(std::move(task));
   }
 
-  template <class F, class... Args>
-  auto submit(F&& f, Args&&... args)
-      -> std::future<std::invoke_result_t<F, Args...>> {
-    using R = std::invoke_result_t<F, Args...>;
-    if (stopped_.load()) return std::future<R>{};
-
-    auto func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
-    std::packaged_task<R()> task = std::packaged_task<R()>(std::move(func));
-    auto fu = task.get_future();
-
-    auto sp = std::make_shared<std::packaged_task<R()>>(std::move(task));
-
-    if (!tasks_.push([sp] { (*sp)(); })) return std::future<R>{};
-
-    return fu;
-  }
-
   void stop() {
     bool expected = false;
     if (!stopped_.compare_exchange_strong(expected, true)) {
