@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <functional>
 #include <future>
-#include <stdexcept>
 #include <thread>
 #include <type_traits>
 #include <utility>
@@ -33,7 +32,7 @@ class ThreadPool {
   auto submit(F&& f, Args&&... args)
       -> std::future<std::invoke_result_t<F, Args...>> {
     using R = std::invoke_result_t<F, Args...>;
-    if (stopped_.load()) throw std::runtime_error("threadpool stopped.");
+    if (stopped_.load()) return std::future<R>{};
 
     auto func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
     std::packaged_task<R()> task = std::packaged_task<R()>(std::move(func));
@@ -41,8 +40,7 @@ class ThreadPool {
 
     auto sp = std::make_shared<std::packaged_task<R()>>(std::move(task));
 
-    if (!tasks_.push([sp] { (*sp)(); }))
-      throw std::runtime_error("threadpool closed.");
+    if (!tasks_.push([sp] { (*sp)(); })) return std::future<R>{};
 
     return fu;
   }
