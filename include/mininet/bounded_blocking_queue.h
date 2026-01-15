@@ -33,6 +33,26 @@ class BoundedBlockingQueue {
     return true;
   }
 
+  bool try_push(const T& x) {
+    std::unique_lock<std::mutex> lk(mtx_);
+    if (closed_) return false;
+    if (q_.size() >= cap_) return false;
+    q_.push(x);
+    lk.unlock();
+    not_empty_.notify_one();
+    return true;
+  }
+
+  bool try_push(T&& x) {
+    std::unique_lock<std::mutex> lk(mtx_);
+    if (closed_) return false;
+    if (q_.size() >= cap_) return false;
+    q_.push(std::move(x));
+    lk.unlock();
+    not_empty_.notify_one();
+    return true;
+  }
+
   bool pop(T& out) {
     std::unique_lock<std::mutex> lk(mtx_);
     not_empty_.wait(lk, [&] { return closed_ || !q_.empty(); });

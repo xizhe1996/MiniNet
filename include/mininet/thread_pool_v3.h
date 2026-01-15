@@ -10,16 +10,13 @@
 #include <utility>
 #include <vector>
 
-#include "mininet/bounded_blocking_queue.h"
+#include "mininet/blocking_queue.h"
 
 namespace mininet {
 
 class ThreadPool {
  public:
-  explicit ThreadPool(size_t n, size_t capcity)
-      : tasks_(capcity), stopped_(false) {
-    if (capcity == 0) throw std::invalid_argument("capacity must be > 0");
-
+  explicit ThreadPool(size_t n) : stopped_(false) {
     workers_.reserve(n);
     for (size_t i = 0; i < n; ++i) {
       workers_.emplace_back([this] { worker_loop(); });
@@ -31,11 +28,6 @@ class ThreadPool {
   bool submit(std::function<void()> task) {
     if (stopped_.load()) return false;
     return tasks_.push(std::move(task));
-  }
-
-  bool try_submit(std::function<void()> task) {
-    if (stopped_.load()) return false;
-    return tasks_.try_push(std::move(task));
   }
 
   template <class F, class... Args>
@@ -86,7 +78,7 @@ class ThreadPool {
   }
 
  private:
-  BoundedBlockingQueue<std::function<void()>> tasks_;
+  BlockingQueue<std::function<void()>> tasks_;
   std::vector<std::thread> workers_;
   std::atomic<bool> stopped_;
 };
