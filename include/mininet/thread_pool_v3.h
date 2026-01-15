@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "mininet/blocking_queue.h"
+#include "mininet/blocking_queue_v3.h"
 
 namespace mininet {
 

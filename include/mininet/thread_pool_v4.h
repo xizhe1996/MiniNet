@@ -6,6 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <thread>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -16,9 +17,9 @@ namespace mininet {
 
 class ThreadPool {
  public:
-  explicit ThreadPool(size_t n, size_t capcity)
-      : tasks_(capcity), stopped_(false) {
-    if (capcity == 0) throw std::invalid_argument("capacity must be > 0");
+  explicit ThreadPool(size_t n, size_t capacity)
+      : tasks_(capacity), stopped_(false) {
+    if (capacity == 0) throw std::invalid_argument("capacity must be > 0");
 
     workers_.reserve(n);
     for (size_t i = 0; i < n; ++i) {
@@ -28,10 +29,8 @@ class ThreadPool {
 
   ~ThreadPool() { stop(); }
 
-  bool submit(std::function<void()> task) {
-    if (stopped_.load()) return false;
-    return tasks_.push(std::move(task));
-  }
+  ThreadPool(const ThreadPool&) = delete;
+  ThreadPool& operator=(const ThreadPool&) = delete;
 
   bool try_submit(std::function<void()> task) {
     if (stopped_.load()) return false;
@@ -44,13 +43,20 @@ class ThreadPool {
     using R = std::invoke_result_t<F, Args...>;
     if (stopped_.load()) throw std::runtime_error("threadpool stopped.");
 
-    auto func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
-    std::packaged_task<R()> task = std::packaged_task<R()>(std::move(func));
-    auto fu = task.get_future();
+    auto taskPtr = std::make_shared<std::packaged_task<R()>>(
+        [func = std::forward<F>(f),
+         tup = std::make_tuple(std::forward<Args>(args)...)]() mutable -> R {
+          if constexpr (std::is_void_v<R>) {
+            std::apply(std::move(func), std::move(tup));
+            return;
+          } else {
+            return std::apply(std::move(func), std::move(tup));
+          }
+        });
 
-    auto sp = std::make_shared<std::packaged_task<R()>>(std::move(task));
+    auto fu = taskPtr->get_future();
 
-    if (!tasks_.push([sp] { (*sp)(); }))
+    if (!tasks_.push([taskPtr] { (*taskPtr)(); }))
       throw std::runtime_error("threadpool closed.");
 
     return fu;
@@ -77,9 +83,9 @@ class ThreadPool {
       try {
         task();
       } catch (const std::exception& e) {
-        std::cerr << "[worker]" << "task exception : " << e.what() << "\n ";
+        // TODO: hook logger later
       } catch (...) {
-        std::cerr << "[worker]" << "task unknow exception" << "\n ";
+        // TODO: hook logger later
       }
     }
     // queue closed and empty -> exit

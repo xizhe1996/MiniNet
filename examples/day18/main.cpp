@@ -4,7 +4,7 @@
 #include <thread>
 #include <vector>
 
-#include "mininet/thread_pool.h"
+#include "mininet/thread_pool_v4.h"
 
 using mininet::BoundedBlockingQueue;
 using mininet::ThreadPool;
