@@ -33,6 +33,10 @@ function(add_day_example name source)
     target_link_libraries(${name} PRIVATE mininet)
 endfunction()
 
+add_executable(day20 examples/day20/bench_threadpool.cpp)
+target_link_libraries(day20 PRIVATE benchmark pthread)
+target_include_directories(day20 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 # add examples
 add_day_example(day01 examples/day01/main.cpp)
 add_day_example(day02 examples/day02/main.cpp)
