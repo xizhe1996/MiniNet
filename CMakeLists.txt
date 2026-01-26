@@ -37,6 +37,14 @@ add_executable(day20 examples/day20/bench_threadpool.cpp)
 target_link_libraries(day20 PRIVATE benchmark pthread)
 target_include_directories(day20 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+add_executable(day22_client examples/day22/echo_client.cpp ${CMAKE_CURRENT_SOURCE_DIR}/net/tcp_listener.cpp)
+target_link_libraries(day22_client PRIVATE pthread)
+target_include_directories(day22_client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_executable(day22_server examples/day22/echo_server.cpp ${CMAKE_CURRENT_SOURCE_DIR}/net/tcp_listener.cpp)
+target_link_libraries(day22_server PRIVATE pthread)
+target_include_directories(day22_server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
 # add examples
 add_day_example(day01 examples/day01/main.cpp)
 add_day_example(day02 examples/day02/main.cpp)
